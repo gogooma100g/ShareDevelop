@@ -10,10 +10,61 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        release {
+            storeFile file("ShareDevelop.jks")
+            storePassword System.getenv("KSTOREPWD")
+            keyAlias "ShareDevelop"
+            keyPassword System.getenv("KEYPWD")
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            shrinkResources true    //리소스 축소
+            minifyEnabled true      //코드 축소
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable false
+        }
+
+        debug {
+            minifyEnabled true
+            useProguard false   //플러그인 축소기
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+
+        staging {
+            initWith debug
+            manifestPlaceholders = [hostName:"internal.example.com"]
+            applicationIdSuffix ".debugStaging"
+        }
+    }
+
+    // Specifies one flavor dimension.
+    flavorDimensions "version"
+    productFlavors {
+        demo {
+            // Assigns this product flavor to the "version" flavor dimension.
+            // This property is optional if you are using only one dimension.
+            dimension "version"
+            applicationIdSuffix ".demo"
+            versionNameSuffix "-demo"
+        }
+        full {
+            dimension "version"
+            applicationIdSuffix ".full"
+            versionNameSuffix "-full"
+        }
+    }
+
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+        // To check for a certain build type, use variant.buildType.name == "<buildType>"
+        if (names.contains("minApi21") && names.contains("demo")) {
+            // Gradle ignores any variants that satisfy the conditions above.
+            setIgnore(true)
         }
     }
 
